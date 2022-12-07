@@ -158,7 +158,7 @@ dblp_clean_results$abstract = numeric(nrow(dblp_clean_results))
   dblp_clean_results$abstract <- 'NA'
 }
 
-
+dblp_clean_results <- dblp_clean_results[,c(1,7,2,3,4,6,5)]
 
 
 # #data from scopus
@@ -304,41 +304,42 @@ dblp_clean_results$abstract = numeric(nrow(dblp_clean_results))
 # #-#-#-#
 # 
 # 
-t <- get_pubmed_ids(pudmed_query)
-abstracts_xml <- fetch_pubmed_data(pubmed_id_list = t,
-                                    retmax = t$Count)
+# t <- get_pubmed_ids(pudmed_query)
+# abstracts_xml <- fetch_pubmed_data(pubmed_id_list = t,
+#                                     retmax = t$Count)
+# # 
+# test <- articles_to_list(abstracts_xml)
 # 
-test <- articles_to_list(abstracts_xml)
-
+# # 
+# pubmed_results <- article_to_df(test[1], getAuthors = FALSE, getKeywords = TRUE, max_chars = -1)
+# pubmed_results$authors <- paste0(custom_grep(test[1],"LastName","char"),collapse = ", ")
+# # 
 # 
-pubmed_results <- article_to_df(test[1], getAuthors = FALSE, getKeywords = TRUE, max_chars = -1)
-pubmed_results$authors <- paste0(custom_grep(test[1],"LastName","char"),collapse = ", ")
-# 
-
-for (article in 2:length(test)) {
-  tmp <- article_to_df(test[article], getAuthors = FALSE, getKeywords = TRUE, max_chars = -1)
-  tmp$authors <- paste0(custom_grep(test[article],"LastName","char"),collapse = ", ")
-  if (is.data.frame(tmp) && nrow(tmp)>0){
-    pubmed_results<- rbind(pubmed_results,tmp)
-  }
-  
-}
- 
- pubmed_results$date <- paste0(pubmed_results$year,
-                               pubmed_results$month,pubmed_results$day)
- 
- pubmed_clean_results <- data.frame(stringsAsFactors = FALSE,
-                                    title    = pubmed_results$title,   
-                                    abstract    = pubmed_results$abstract,      
-                                    authors     = pubmed_results$authors,     
-                                    link        = pubmed_results$doi,  
-                                    date        = pubmed_results$date,  
-                                    subject     = pubmed_results$keywords,     
-                                    source      = rep("PubMed",length(pubmed_results$title)))      
- write.csv(pubmed_clean_results,"data/total_found_pubmed.csv", row.names = FALSE)
+# for (article in 2:length(test)) {
+#   tmp <- article_to_df(test[article], getAuthors = FALSE, getKeywords = TRUE, max_chars = -1)
+#   tmp$authors <- paste0(custom_grep(test[article],"LastName","char"),collapse = ", ")
+#   if (is.data.frame(tmp) && nrow(tmp)>0){
+#     pubmed_results<- rbind(pubmed_results,tmp)
+#   }
+#   
+# }
+#  
+#  pubmed_results$date <- paste0(pubmed_results$year,
+#                                pubmed_results$month,pubmed_results$day)
+#  
+#  pubmed_clean_results <- data.frame(stringsAsFactors = FALSE,
+#                                     title    = pubmed_results$title,   
+#                                     abstract    = pubmed_results$abstract,      
+#                                     authors     = pubmed_results$authors,     
+#                                     link        = pubmed_results$doi,  
+#                                     date        = pubmed_results$date,  
+#                                     subject     = pubmed_results$keywords,     
+#                                     source      = rep("PubMed",length(pubmed_results$title)))      
+#  write.csv(pubmed_clean_results,"data/total_found_pubmed.csv", row.names = FALSE)
  # Combine all clean search results into final
 
 # 
+pubmed_clean_results=read.csv("data/total_found_pubmed.csv", stringsAsFactors = FALSE,fileEncoding='UTF-8-BOM', header = TRUE)
 
 
 all_results <- rbind(dblp_clean_results,
@@ -385,13 +386,18 @@ names(all_results)
 # ###########################################################################
 # # Daily updates --------------------------------------------------------
 # ###########################################################################
+
 previous_results <- read.csv("data/results/all_results.csv",
-                              encoding = "UTF-8",
+                             encoding='UTF-8-BOM',
                               stringsAsFactors = FALSE,
                               header = TRUE)
+previous_results = previous_results %>% rename('title' = 'ï..title')
 # 
 previous_results_tmp <- previous_results %>%
    select(-expert_decision,-initial_decision)#,-ID)
+
+
+
 # 
 previous_results_tmp$title <- gsub("\\.","",previous_results_tmp$title)
 
